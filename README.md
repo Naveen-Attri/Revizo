@@ -1,233 +1,306 @@
 # Memory Battle - Gamified Flashcard Learning App
 
-A gamified flashcard learning app built with Kotlin and XML layouts for Android. Battle through quiz questions to earn XP, level up, and maintain your daily streak!
+A production-ready, offline-first Android learning app that uses spaced repetition (SM-2 algorithm) to help users master any subject through an engaging battle-style interface.
 
-## Features
+## 🎯 Features
 
-### Version 1.0
+### Core Functionality
+- **SM-2 Spaced Repetition**: Scientifically-proven algorithm for optimal review timing
+- **Deck Management**: Create, edit, and organize flashcards into decks
+- **Tag System**: Multi-tag support for advanced organization and filtering
+- **Battle Mode**: Gamified 10-question battles with XP rewards
+- **Daily Challenge**: Special 5-card challenge with bonus XP (once per day)
+- **Boss Rounds**: Hard questions with double XP after main battle
 
-#### 🏠 Home Screen
-- Display user level and XP progress
-- Show current daily streak
-- Beautiful dark gaming theme
-- Quick access to battles and stats
+### Progression System
+- **XP & Leveling**: Earn XP based on difficulty (Easy: 10, Medium: 20, Hard: 40)
+- **Streak Bonuses**: 
+  - 3 correct in a row → +10 XP
+  - 5 correct in a row → +25 XP + Shield (ignore next wrong answer)
+- **Level System**: 500 XP per level with animated progress
+- **Daily Streaks**: Track consecutive days of studying
 
-#### ⚔️ Battle Screen
-- Answer 10 multiple-choice questions per battle
-- 15-second countdown timer per question
-- Immediate feedback (Correct/Incorrect)
-- Visual answer highlighting
-- Difficulty-based XP rewards:
-  - Easy: 10 XP
-  - Medium: 20 XP
-  - Hard: 40 XP
+### Analytics & Stats
+- **Accuracy Tracking**: Overall and per-deck accuracy percentages
+- **Response Time**: Average time to answer questions
+- **Weakest Tags**: Identify areas needing improvement
+- **XP History**: 30-day progress visualization
+- **Battle History**: Complete record of past sessions
 
-#### 🎯 Battle Results
-- Total XP earned display
-- Accuracy percentage
-- Correct/Incorrect count
-- Streak bonus for consecutive correct answers (every 3)
-- Level up notifications
+### User Experience
+- **Dark Theme**: Gaming-style UI optimized for extended study sessions
+- **Animations**: 
+  - Card flip transitions
+  - Correct/incorrect feedback (green glow/shake)
+  - Level-up confetti
+  - Circular countdown timer
+- **Accessibility**: Proper contentDescription, 48dp touch targets, readable fonts
+- **Empty States**: Helpful CTAs when no cards are available
 
-#### 📊 Stats Screen
-- Total XP earned
-- Current level and progress to next level
-- Total battles completed
-- Overall accuracy percentage
-- Total correct and incorrect answers
+### Smart Features
+- **Due Card System**: Only shows cards that need review
+- **Practice Mode**: Study any deck even when no cards are due
+- **Daily Notifications**: WorkManager reminds you when cards are due
+- **Settings**:
+  - Toggle notifications
+  - Set battle length (5/10/15 questions)
+  - Daily target configuration
+  - Progress reset with confirmation
+  - Export/Import decks as JSON
 
-#### 🎮 Game Mechanics
-- **XP System**: Earn XP based on question difficulty
-- **Leveling**: Level up every 500 XP
-- **Streaks**: Daily streak tracking to encourage consistent play
-- **Streak Bonus**: +25 XP for every 3 correct answers in a row
+### Onboarding
+- Welcome flow with interest selection
+- Pre-populated with 40 high-quality flashcards across 5 subjects:
+  - Data Structures & Algorithms
+  - Mathematics
+  - Science
+  - Physics
+  - Chemistry
 
-## Architecture
+## 🏗️ Architecture
 
-### MVVM (Model-View-ViewModel)
-- **Model**: Room Database entities and repositories
-- **View**: XML layouts and Activities
-- **ViewModel**: LiveData-based ViewModels for each screen
+### MVVM Pattern
+```
+View (Activity/Fragment) → ViewModel → Repository → DAO → Room Database
+                              ↓
+                         LiveData/Flow
+```
 
-### Technology Stack
+### Tech Stack
 - **Language**: Kotlin
 - **UI**: XML Layouts (Material Design)
-- **Database**: Room Database
-- **Async**: Kotlin Coroutines + Flow
-- **Architecture Components**: ViewModel, LiveData
-- **Network** (Future): Retrofit for OpenAI API integration
+- **Architecture**: MVVM
+- **Database**: Room (SQLite)
+- **Async**: Coroutines + Flow
+- **DI**: Manual (easily upgradeable to Hilt)
+- **Background**: WorkManager
+- **Testing**: JUnit, Room Testing, Coroutines Test
 
-## Project Structure
-
+### Database Schema
 ```
-app/src/main/java/com/example/revizo/
-├── data/
-│   ├── entity/
-│   │   ├── Flashcard.kt          # Flashcard entity
-│   │   └── UserStats.kt          # User statistics entity
-│   ├── dao/
-│   │   ├── FlashcardDao.kt       # Flashcard database operations
-│   │   └── UserStatsDao.kt       # User stats database operations
-│   ├── database/
-│   │   └── AppDatabase.kt        # Room database with sample data
-│   └── repository/
-│       └── GameRepository.kt     # Business logic layer
-├── ui/
-│   ├── home/
-│   │   ├── HomeActivity.kt       # Home screen
-│   │   └── HomeViewModel.kt      # Home screen logic
-│   ├── battle/
-│   │   ├── BattleActivity.kt     # Battle screen
-│   │   ├── BattleViewModel.kt    # Battle logic with timer
-│   │   └── BattleResultActivity.kt # Battle results
-│   └── stats/
-│       ├── StatsActivity.kt      # Statistics screen
-│       └── StatsViewModel.kt     # Stats logic
-└── MainActivity.kt               # Entry point
+┌─────────────┐
+│ Flashcards  │ (40 sample cards with SM-2 fields)
+├─────────────┤
+│ deckId      │ → Decks
+│ question    │
+│ difficulty  │
+│ easeFactor  │ (SM-2)
+│ intervalDays│ (SM-2)
+│ nextReview  │ (SM-2)
+└─────────────┘
 
-app/src/main/res/
-├── layout/
-│   ├── activity_home.xml         # Home screen layout
-│   ├── activity_battle.xml       # Battle screen layout
-│   ├── activity_battle_result.xml # Results layout
-│   └── activity_stats.xml        # Stats screen layout
-├── values/
-│   ├── colors.xml                # Dark gaming theme colors
-│   ├── strings.xml               # All app strings
-│   └── themes.xml                # Material 3 dark theme
-└── drawable/
-    ├── progress_bar_xp.xml       # XP progress bar design
-    └── bg_difficulty_badge.xml   # Difficulty badge background
+┌─────────────┐
+│ UserStats   │ (XP, level, streaks, settings)
+├─────────────┤
+│ totalXp     │
+│ currentLevel│
+│ dailyStreak │
+│ battleLength│
+└─────────────┘
+
+┌─────────────┐        ┌──────────────────┐
+│ Decks       │        │ FlashcardTagRef  │
+│             │        │ (Many-to-Many)   │
+│ Tags        │        └──────────────────┘
+│             │
+│BattleHistory│
+└─────────────┘
 ```
 
-## Database Schema
+## 📊 SM-2 Algorithm
 
-### Flashcard Entity
-```kotlin
-- id: Int (Primary Key, Auto-generated)
-- subject: String
-- question: String
-- correctAnswer: String
-- optionA, optionB, optionC, optionD: String
-- difficulty: String (EASY/MEDIUM/HARD)
-- correctCount: Int
-- wrongCount: Int
-- lastSeenTimestamp: Long
+The app implements the SuperMemo 2 (SM-2) spaced repetition algorithm:
+
+1. **Quality Rating**: 0-5 based on correctness and response time
+2. **Interval Calculation**: 
+   - First review: 1 day
+   - Second review: 6 days
+   - Subsequent: Previous interval × 2.5
+3. **Ease Factor**: Adjusts based on performance (minimum 1.3)
+4. **Reset on Failure**: Wrong answers reset to beginning
+
+### Quality Ratings
+- **5**: Perfect recall (fast)
+- **4**: Correct with hesitation
+- **3**: Correct but required effort
+- **2**: Wrong but close
+- **1**: Wrong with partial knowledge
+- **0**: Complete guess
+
+## 🧪 Testing
+
+### Unit Tests
+- `SpacedRepetitionSchedulerTest`: 13 test cases covering:
+  - Interval progression
+  - Ease factor adjustments
+  - Reset logic
+  - Quality calculation
+  - Edge cases
+
+- `XPCalculatorTest`: 10+ test cases for:
+  - XP calculation by difficulty
+  - Streak bonuses
+  - Level progression
+  - Accuracy calculations
+
+- `DateUtilsTest`: Time and date utilities
+
+### Running Tests
+```bash
+./gradlew test
 ```
 
-### UserStats Entity
-```kotlin
-- id: Int (Primary Key = 1)
-- totalXp: Int
-- currentLevel: Int
-- dailyStreak: Int
-- lastPlayedDate: Long
-- totalCorrect: Int
-- totalIncorrect: Int
-- totalBattles: Int
+### CI/CD
+GitHub Actions workflow automatically runs tests on every push/PR.
+
+## 🚀 Getting Started
+
+### Prerequisites
+- Android Studio Hedgehog or later
+- JDK 11
+- Android SDK 24+ (target: 36)
+
+### Building
+```bash
+# Clone the repository
+git clone https://github.com/yourusername/memory-battle.git
+
+# Open in Android Studio
+# Let Gradle sync
+
+# Run on device/emulator
+./gradlew installDebug
+
+# Or use Android Studio Run button
 ```
 
-## Sample Data
+### First Launch
+1. App pre-populates with 40 flashcards across 5 decks
+2. Choose battle length in settings (default: 10)
+3. Start your first battle!
+4. Cards are due immediately - complete reviews to start spacing
 
-The app comes pre-loaded with 20 flashcards covering:
-- Science (Biology, Physics, Chemistry)
-- Mathematics
-- History
-- Geography
-- Literature
-- Technology
-- General Knowledge
+## 📱 Screens
 
-## Setup Instructions
+### Home Screen
+- XP progress bar with current level
+- Due cards counter
+- Daily streak indicator
+- "Start Battle" button
+- "Daily Challenge" button (if available)
+- "View Stats" button
+- Deck list
 
-1. **Clone the repository**
-   ```bash
-   git clone <repository-url>
-   ```
+### Battle Screen
+- Question card with 4 options
+- Circular 15-second countdown
+- Correct/incorrect animations
+- Streak counter
+- Progress indicator (X/10)
+- Boss round after 10 questions
 
-2. **Open in Android Studio**
-   - Open Android Studio
-   - Select "Open an Existing Project"
-   - Navigate to the project folder
+### Stats Screen
+- Total XP and level
+- Accuracy percentage
+- Total battles
+- Average response time
+- XP history chart (30 days)
+- Weakest tags list
 
-3. **Sync Gradle**
-   - Wait for Gradle sync to complete
-   - Dependencies will be downloaded automatically
+### Deck Management
+- Create new deck
+- Edit deck (name, color, description)
+- View cards in deck
+- Delete deck (with confirmation)
 
-4. **Run the app**
-   - Connect an Android device or start an emulator
-   - Click "Run" or press Shift+F10
+### Settings
+- Notifications toggle
+- Battle length (5/10/15)
+- Daily target
+- Reset progress
+- Export/Import decks
 
-## Minimum Requirements
+## 🎨 Theming
 
-- Android SDK 24 (Android 7.0 Nougat) or higher
-- Target SDK 36
-- Kotlin 1.9.0
-- Gradle 9.0.1
+Dark theme with game-like aesthetics:
+- **Primary**: #6200EE (Purple)
+- **Accent**: #03DAC5 (Teal)
+- **Correct**: #4CAF50 (Green)
+- **Incorrect**: #F44336 (Red)
+- **Background**: #121212 (Dark)
 
-## Dependencies
+## 📦 Project Structure
+```
+app/src/main/
+├── java/com/example/revizo/
+│   ├── data/
+│   │   ├── dao/           # Room DAOs
+│   │   ├── database/      # AppDatabase + sample data
+│   │   ├── entity/        # Room entities
+│   │   └── repository/    # Business logic layer
+│   ├── ui/
+│   │   ├── home/          # Home screen
+│   │   ├── battle/        # Battle screen
+│   │   ├── stats/         # Stats screen
+│   │   ├── deck/          # Deck management
+│   │   ├── settings/      # Settings screen
+│   │   └── onboarding/    # First-run experience
+│   ├── util/              # Utilities (SM-2, XP, Date)
+│   └── worker/            # WorkManager for notifications
+├── res/
+│   ├── layout/            # XML layouts
+│   ├── values/            # Colors, strings, themes
+│   └── drawable/          # Icons and graphics
+└── AndroidManifest.xml
 
-```kotlin
-// Core
-androidx.core:core-ktx:1.17.0
-androidx.appcompat:appcompat:1.7.1
-com.google.android.material:material:1.13.0
-
-// Room Database
-androidx.room:room-runtime:2.6.1
-androidx.room:room-ktx:2.6.1
-
-// Lifecycle Components
-androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.0
-androidx.lifecycle:lifecycle-livedata-ktx:2.8.0
-
-// Coroutines
-org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3
-
-// Retrofit (for future AI integration)
-com.squareup.retrofit2:retrofit:2.9.0
-com.squareup.retrofit2:converter-gson:2.9.0
+app/src/test/
+└── java/com/example/revizo/  # Unit tests
 ```
 
-## Future Enhancements (Version 2.0)
+## 🔄 Future Enhancements (Not Implemented)
 
-- [ ] OpenAI API integration for AI-generated questions
-- [ ] Custom flashcard creation
-- [ ] Multiple battle modes (Time Attack, Endless)
-- [ ] Achievements and badges
-- [ ] Leaderboards
-- [ ] Social features (Share progress)
-- [ ] Spaced repetition algorithm
-- [ ] Custom study sets
-- [ ] Dark/Light theme toggle
-- [ ] Audio/Sound effects
-- [ ] Animations and transitions
+- AI-generated flashcards via OpenAI API
+- Cloud sync with Firebase
+- Multiplayer battles
+- Leaderboards
+- Achievement system
+- Custom card templates
+- Image support in cards
+- Audio pronunciation
+- Widget for quick study
 
-## Color Scheme (Dark Gaming Theme)
+## 📄 License
 
-- **Background**: `#121212`
-- **Surface**: `#1E1E1E`
-- **Card**: `#2A2A2A`
-- **Primary Purple**: `#BB86FC`
-- **Primary Blue**: `#03DAC6`
-- **Accent Gold**: `#FFD700`
-- **Correct Green**: `#4CAF50`
-- **Incorrect Red**: `#F44336`
-- **Warning Orange**: `#FF9800`
+MIT License - See LICENSE file for details
 
-## Contributing
+## 👥 Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions welcome! Please:
+1. Fork the repository
+2. Create a feature branch
+3. Add tests for new functionality
+4. Ensure all tests pass
+5. Submit a pull request
 
-## License
+## 🐛 Known Issues
 
-This project is open source and available under the MIT License.
+- None currently
 
-## Contact
+## 💡 Tips for Users
 
-For questions or feedback, please open an issue on GitHub.
+1. **Review daily**: The SM-2 algorithm works best with consistent daily reviews
+2. **Use tags**: Tag your weak areas to track improvement
+3. **Daily challenge**: Complete it every day for maximum XP
+4. **Boss rounds**: Worth double XP, so take your time!
+5. **Streaks**: Build up your streak for bonus XP on every answer
+
+## 📞 Support
+
+For issues, questions, or suggestions:
+- Open a GitHub issue
+- Email: support@memorybattle.com
 
 ---
 
-**Happy Learning! 🎮📚**
+**Built with ❤️ for learners everywhere**
 
